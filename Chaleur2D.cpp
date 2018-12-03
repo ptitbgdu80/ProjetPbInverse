@@ -1,7 +1,7 @@
 #include "Chaleur2D.h"
 
 using namespace Eigen;
-using namespace std ;
+using namespace std;
 
 //Constructeur :
 Chaleur2D::Chaleur2D()
@@ -241,32 +241,30 @@ void Chaleur2D::IterativeSolver (int nb_iterations)
 
 void Chaleur2D::SaveSol(string name_file)
 {
-
-
   ofstream mon_flux;
   mon_flux.open(name_file, ios::out);
   mon_flux << "# vtk DataFile Version 3.0" << endl
-	   << "cell" << endl
-	   << "ASCII" << endl
-	   << "DATASET STRUCTURED_POINTS" << endl
-	   << "DIMENSIONS " << _Nx << " " << _Ny << " 1" << endl
-	   << "ORIGIN 0 0 0" << endl
-	   << "SPACING " + to_string(_h_x)+ " " + to_string(_h_y) +" 1" << endl
-	   << "POINT_DATA " << _Nx*_Ny << endl
-	   << "SCALARS sample_scalars double" << endl
-	   << "LOOKUP_TABLE default" << endl;
+  << "cell" << endl
+  << "ASCII" << endl
+  << "DATASET STRUCTURED_POINTS" << endl
+  << "DIMENSIONS " << _Nx << " " << _Ny << " 1" << endl
+  << "ORIGIN 0 0 0" << endl
+  << "SPACING " + to_string(_h_x)+ " " + to_string(_h_y) +" 1" << endl
+  << "POINT_DATA " << _Nx*_Ny << endl
+  << "SCALARS sample_scalars double" << endl
+  << "LOOKUP_TABLE default" << endl;
 
 
   for(int i=_Ny-1; i>=0; i--)
+  {
+    for(int j=0; j<_Nx; j++)
     {
-      for(int j=0; j<_Nx; j++)
-	{
-	  mon_flux << _sol(j + i*_Nx) << " ";
-	  //mon_flux.write("bonjour",7);
+      mon_flux << _sol(j + i*_Nx) << " ";
+      //mon_flux.write("bonjour",7);
 
-	}
-      mon_flux << endl;
     }
+    mon_flux << endl;
+  }
 
   mon_flux.close();
 }
