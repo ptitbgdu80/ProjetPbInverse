@@ -1,0 +1,52 @@
+#Possibilités pour CL droite :
+#Dirichlet_constant K => T = K
+#Dirichlet_affine K => T = K*y
+#Dirichlet_sinusoïdal => T = K*sin(2*pi*y)
+
+CL droite :
+Dirichlet_sinusoïdal 4000
+
+
+#Possibilités pour CL gauche, Cl haut, CL bas :
+#Dirichlet_constant K => T = K
+#Neumann_homogène 0 => flux nul
+
+CL gauche :
+Dirichlet_constant 0
+
+CL haut :
+Neumann_homogène 0
+
+CL bas :
+Neumann_homogène 0
+
+N_x :
+100
+
+N_y :
+100
+
+x_min :
+0
+
+x_max :
+1
+
+x* :
+0.2
+
+y_min :
+0.
+
+y_max :
+1
+
+Solveur :
+direct
+
+Fichier solution entière :
+solution.txt
+#mettre non si on ne veut pas sauvegarder toute la solution
+
+Fichier sauvegarde u* :
+u_etoile.txt
