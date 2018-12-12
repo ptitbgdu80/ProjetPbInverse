@@ -20,6 +20,7 @@ class ProblemeInverse
   Eigen::VectorXd _vectalpha; //Condition au bord droit
   Eigen::VectorXd _db; //Vecteur utilisable pour chaque colonne de la matrice de db/dalpha
   Eigen::VectorXd _du; //Vecteur utilisable pour chaque colonne de la matrice de du/dalpha
+  Eigen::VectorXd _gs;
 
   std::string _Solveur;
 
@@ -33,3 +34,4 @@ class ProblemeInverse
   void InitializeMatrix();
   void InitializeSecondMembre();
   void Sensibilite();
+};
