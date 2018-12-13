@@ -38,6 +38,8 @@ void ProblemeInverse::Initialize(DataFile data_file)
   _vectalpha.setZero(_Ny);
   _du.setZero(_Nx*_Ny);
   _ue.setZero(_Nx*_Ny);
+  _gs.setZero(_Ny);
+  _b.setZero(_Nx*_Ny);
 
   // if (_save_all_file !="non")
   // {
@@ -101,8 +103,6 @@ void ProblemeInverse::InitializeMatrix()
 
 void ProblemeInverse::InitializeSecondMembre()
 {
-  _gs.setZero(_Ny);
-  _b.setZero(_Nx*_Ny);
   for(int i=0 ; i<_Ny ; i++)
   {
     _b((i+1)*_Ny-1)-=_gs(i)*_beta;
@@ -112,22 +112,26 @@ void ProblemeInverse::InitializeSecondMembre()
 void ProblemeInverse::Sensibilite()
 {
   double Sum;
+  double a;
   Sum=1.;
 
   ConjugateGradient <SparseMatrix<double> > solver;
   solver.compute(_LapMat);
+  InitializeSecondMembre();
+
   while(Sum>=_tolerance)
   {
     Sum=0.;
     _u = solver.solve(_b);
-
     for (int i=0; i<_Ny; i++)
     {
       _db.setZero(_db.size());
       _db((i+1)*_Nx-1)=-_beta;
       _du = solver.solve(_db);
-      Sum+=pow((_u-_ue).dot(_du),2);
+      a = (_u-_ue).dot(_du);
+      Sum+=pow(a,2);
       _du.setZero(_du.size());
+
     }
     Sum=sqrt(Sum);
   }
