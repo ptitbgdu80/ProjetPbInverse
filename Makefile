@@ -18,7 +18,7 @@ PROGINVERSE = runInverse
 
 # Les fichiers source à compiler
 SRCCHALEUR = mainChaleur.cc Chaleur2D.cpp Datafile.cpp
-SRCINVERSE = mainInverse.cc ProblemeInverse.cpp
+SRCINVERSE = mainInverse.cc ProblemeInverse.cpp DataFile.cpp
 
 # La commande complète : compile seulement si un fichier a été modifié
 $(PROGINVERSE) : $(SRCINVERSE)

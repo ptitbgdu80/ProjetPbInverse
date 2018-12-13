@@ -134,20 +134,23 @@ void Chaleur2D::IterativeSolver ()
 void Chaleur2D::SaveSol()
 {
   ofstream mon_flux;
-  mon_flux.open(_save_all_file, ios::out);
-  mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl
-  << "# Avec x_min=" << _x_min << ", x_max=" << _x_max << ", _y_min=" << _y_min << ", y_max=" << _y_max << endl
-  << "# Nx =" << _Nx << ", Ny=" << _Ny << ", g(s) : " << _CL_droite << " " << _Val_CL_gauche << endl
-  << "# Les points sont sauvegardés ci-dessous (x, y, T) : " << endl;
-
-  for(int i = 0; i < _Ny; i++)
+  if (_save_all_file != "non")
   {
-    for(int j = 0; j<_Nx; j++)
+    mon_flux.open(_save_all_file, ios::out);
+    mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl
+    << "# Avec x_min=" << _x_min << ", x_max=" << _x_max << ", _y_min=" << _y_min << ", y_max=" << _y_max << endl
+    << "# Nx =" << _Nx << ", Ny=" << _Ny << ", g(s) : " << _CL_droite << " " << _Val_CL_gauche << endl
+    << "# Les points sont sauvegardés ci-dessous (x, y, T) : " << endl;
+
+    for(int i = 0; i < _Ny; i++)
     {
-      mon_flux << j*_h_x << " " << i*_h_y << " " << _sol(j + i*_Nx) << endl;
+      for(int j = 0; j<_Nx; j++)
+      {
+        mon_flux << j*_h_x << " " << i*_h_y << " " << _sol(j + i*_Nx) << endl;
+      }
     }
+    mon_flux.close();
   }
-  mon_flux.close();
 
   mon_flux.open(_save_u_etoile_file, ios::out);
   mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl << endl

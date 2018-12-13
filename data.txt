@@ -1,7 +1,7 @@
 #Possibilités pour CL droite :
 #Dirichlet_constant K => T = K
 #Dirichlet_affine K => T = K*y
-#Dirichlet_sinusoïdal => T = K*sin(2*pi*y)
+#Dirichlet_sinusoïdal K => T = K*sin(2*pi*y)
 
 CL droite :
 Dirichlet_sinusoïdal 4000
@@ -27,10 +27,10 @@ N_y :
 100
 
 x_min :
-0
+0.
 
 x_max :
-1
+1.
 
 x* :
 0.2
@@ -39,7 +39,7 @@ y_min :
 0.
 
 y_max :
-1
+1.
 
 Solveur :
 direct
