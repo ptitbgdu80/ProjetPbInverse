@@ -39,6 +39,7 @@ void ProblemeInverse::Initialize(DataFile data_file)
     _gs.setZero(_Ny);
     _dI.setZero(_Ny);
     _GrandU.setZero(_Nx*_Ny+_nombrepara);
+    _GrandUe.setZero(_Nx*_Ny+_nombrepara);
     _gradproj.setZero(_Nx*_Ny+_nombrepara);
     _lambda.setZero(_Nx*_Ny);
     _para.setZero(_nombrepara);
@@ -234,6 +235,10 @@ void ProblemeInverse::Projection()
   SparseMatrix<double> BTB(_B*_B.transpose());
   solver.compute(BTB);
   InitializeMatrixA();
+  for(int i=0; i<_Nx*_Ny; i++)
+  {
+    _GrandUe(i)=_ue(i);
+  }
 
   while(Sum>=_tolerance)
   {
