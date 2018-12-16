@@ -27,7 +27,10 @@ class ProblemeInverse
   Eigen::VectorXd _lambda; //Vecteur des coefficients de Lagrange.
   Eigen::VectorXd _Ulambda; //Vecteur contenant u, les param et les coeff de Lagrange.
   Eigen::VectorXd _gradproj; //Vecteur gradient utilisé dans l'algo gradient projeté
+
   std::string _Solveur;
+  std::string _file_name; //nom du fichier contenant ue
+
 
   public: // Méthodes et opérateurs de la classe
   ProblemeInverse();

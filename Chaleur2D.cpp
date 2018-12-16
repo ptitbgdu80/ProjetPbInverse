@@ -168,7 +168,10 @@ void Chaleur2D::SaveSol()
 
   for(int i = 0; i < _Ny; i++)
   {
+    for(int j = 0; j<_Nx; j++)
+    {
     mon_flux << _sol(j + i*_Nx) << endl;
+    }
   }
   mon_flux.close();
 }
