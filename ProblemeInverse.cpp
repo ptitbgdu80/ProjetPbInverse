@@ -19,6 +19,7 @@ void ProblemeInverse::Initialize(DataFile data_file)
   _y_min = data_file.Get_y_min();
   _y_max = data_file.Get_y_max();
   _Solveur = data_file.Get_Solveur();
+
   //_tolerance = data_file.Get_tolerance();
 
   // _save_all_file = data_file.Get_save_all_file();
@@ -37,7 +38,7 @@ void ProblemeInverse::Initialize(DataFile data_file)
   _db.setZero(_Nx*_Ny);
   _vectalpha.setZero(_Ny);
   _du.setZero(_Nx*_Ny);
-  _ue.setZero(_Nx*_Ny);
+
   _gs.setZero(_Ny);
   _b.setZero(_Nx*_Ny);
   _dI.setZero(_Ny);
@@ -50,6 +51,75 @@ void ProblemeInverse::Initialize(DataFile data_file)
   //   system(("mkdir -p ./"+_save_all_file).c_str());
   // }
 }
+
+void ProblemeInverse::recup_ue()
+{
+  _ue.setZero(_Nx*_Ny);
+  ifstream fichier;
+  fichier.open(_file_name);
+
+  if (!fichier.is_open())
+  {
+    cout << "Impossible d'ouvrir le fichier " << _file_name << endl;
+    abort();
+  }
+  else
+  {
+    cout << "-------------------------------------------------" << endl;
+    cout << "Lecture du fichier " << _file_name << endl;
+  }
+
+  string file_line;
+
+  while (!fichier.eof())
+  {
+    getline(fichier, file_line);
+
+    if (file_line.find("x_min :") != std::string::npos)
+    {
+      fichier >>_x_min;
+    }
+
+    if (file_line.find("x_max :") != std::string::npos)
+    {
+      fichier >>_x_max
+    }
+
+    if (file_line.find("x* :") != std::string::npos)
+    {
+      fichier >>_x_etoile;
+    }
+
+    if (file_line.find("y_min :") != std::string::npos)
+    {
+      fichier >>_y_min;
+    }
+
+    if (file_line.find("y_max :") != std::string::npos)
+    {
+      fichier >>_y_max;
+    }
+
+    if (file_line.find("Nx :") != std::string::npos)
+    {
+      fichier >>_Nx;
+    }
+
+    if (file_line.find("Ny :") != std::string::npos)
+    {
+      fichier >>_Ny;
+    }
+
+    if (file_line.find("u*:") != std::string::npos)
+    {
+      for (int i=0; i<_Ny; i++)
+      {
+        fichier >>_ue[_Ligneue + _Nx*(i-1)];
+      }
+    }
+  }
+}
+
 
 void ProblemeInverse::InitializeMatrixM()
 {

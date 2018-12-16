@@ -11,7 +11,7 @@
 class ProblemeInverse
 {
   protected:
-  double _x_min, _x_max, _y_min, _y_max, _h_x, _h_y, _alpha, _beta, _gamma,_tolerance,_pas;
+  double _x_min, _x_max, _y_min, _y_max, _h_x, _h_y, _alpha, _beta, _gamma,_tolerance,_pas, _x_etoile;
   int _Nx, _Ny;
   Eigen::SparseMatrix<double> _LapMat, _B,_A;
   Eigen::VectorXd _b; //Second Membre
@@ -28,6 +28,7 @@ class ProblemeInverse
   Eigen::VectorXd _gradproj; //Vecteur gradient utilisé dans l'algo gradient projeté
 
   std::string _Solveur, _choix;
+  std::string _file_name; //nom du fichier contenant ue
 
 
   public: // Méthodes et opérateurs de la classe
