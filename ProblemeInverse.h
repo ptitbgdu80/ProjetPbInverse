@@ -12,19 +12,20 @@ class ProblemeInverse
 {
   protected:
   double _x_min, _x_max, _y_min, _y_max, _h_x, _h_y, _alpha, _beta, _gamma,_tolerance,_pas, _x_etoile;
-  int _Nx, _Ny;
-  Eigen::SparseMatrix<double> _LapMat, _B,_A;
+  int _Nx, _Ny, _Ligneue, _nombrepara;
+  Eigen::SparseMatrix<double> _LapMat, _B,_A,_HugeMatrix;
   Eigen::VectorXd _b; //Second Membre
   Eigen::VectorXd _u; // Solution du problème
   Eigen::VectorXd _GrandU; //Solution contenant u et les paramètres alpha
   Eigen::VectorXd _ue;// Solution expérimentale
   Eigen::VectorXd _GrandUe;// Solution expérimentale et le nombre de parametres de 0.
-  Eigen::VectorXd _vectalpha; //Condition au bord droit
+  Eigen::VectorXd _para; //Paramètres du problème
   Eigen::VectorXd _db; //Vecteur utilisable pour chaque colonne de la matrice de db/dalpha
   Eigen::VectorXd _du; //Vecteur utilisable pour chaque colonne de la matrice de du/dalpha
   Eigen::VectorXd _gs; //Vecteur des paramètres de bord droit
   Eigen::VectorXd _dI; //Vecteur du gradient de I par rapport à gs.
-  Eigen::VectorXd _lambda; //Vecteur des coefficients de Lagrange
+  Eigen::VectorXd _lambda; //Vecteur des coefficients de Lagrange.
+  Eigen::VectorXd _Ulambda; //Vecteur contenant u, les param et les coeff de Lagrange.
   Eigen::VectorXd _gradproj; //Vecteur gradient utilisé dans l'algo gradient projeté
 
   std::string _Solveur, _choix;
@@ -40,6 +41,7 @@ class ProblemeInverse
   void InitializeMatrixM();
   void InitializeMatrixA();
   void InitializeMatrixB();
+  void CalculCL();
   void CalculSecondMembre();
   void Sensibilite();
   void Adjointe();

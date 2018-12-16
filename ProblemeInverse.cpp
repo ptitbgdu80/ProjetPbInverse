@@ -33,17 +33,19 @@ void ProblemeInverse::Initialize(DataFile data_file)
   _h_y = (_y_max-_y_min)/(_Ny+1.);
   _h_x = (_x_max-_x_min)/(_Nx+1.);
 
-  _u.setZero(_Nx*_Ny);
-  _b.setZero(_Nx*_Ny);
-  _db.setZero(_Nx*_Ny);
-  _vectalpha.setZero(_Ny);
-  _du.setZero(_Nx*_Ny);
-
-  _gs.setZero(_Ny);
-  _b.setZero(_Nx*_Ny);
-  _dI.setZero(_Ny);
-  _GrandU.setZero((_Nx+1)*_Ny);
-  _gradproj.setZero((_Nx+1)*_Ny);
+    _u.setZero(_Nx*_Ny);
+    _db.setZero(_Nx*_Ny);
+    _du.setZero(_Nx*_Ny);
+    _ue.setZero(_Nx*_Ny);
+    _gs.setZero(_Ny);
+    _dI.setZero(_Ny);
+    _GrandU.setZero(_Nx*_Ny+_nombrepara);
+    _GrandUe.setZero(_Nx*_Ny+_nombrepara);
+    _gradproj.setZero(_Nx*_Ny+_nombrepara);
+    _lambda.setZero(_Nx*_Ny);
+    _para.setZero(_nombrepara);
+    _Ulambda.setZero(2*_Nx*_Ny+_nombrepara);
+    _HugeMatrix.resize(2*_Nx*_Ny+_nombrepara,2*_Nx*_Ny+_nombrepara);
 
   // if (_save_all_file !="non")
   // {
@@ -165,50 +167,93 @@ void ProblemeInverse::InitializeMatrixM()
 //Matrice B pour equation adjointe.
 void ProblemeInverse::InitializeMatrixB()
 {
-  _B.resize(_Nx*_Ny,_Nx*_Ny+_Ny);
+  _B.resize(_Nx*_Ny,_Nx*_Ny+_nombrepara);
   for (int i=0; i<_Nx*_Ny; i++)
   {
     for (int j=0; j<_Nx*_Ny; j++)
     {
-      _B.coeffRef(i,j)=_LapMat.coeffRef(i,j);
+      _B.coeffRef(i,j)=_LapMat.coeffRef(i,j); //marchera pas
+      _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara+i,j)=_LapMat.coeffRef(i,j);
+      _HugeMatrix.coeffRef(j,_Nx*_Ny+_nombrepara+i)=-_LapMat.coeffRef(i,j);
     }
   }
-  for (int i=0; i<_Ny; i++)
+  if(_choixparametres=="surcharge")
   {
-    _B.coeffRef((i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
+    for (int i=0; i<_nombrepara; i++)
+    {
+      _B.coeffRef((i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
+      _HugeMatrix.coeffRef(_Nx*_Ny+(i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
+      _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+(i+1)*_Nx-1)=-_beta;
+    }
   }
+  if(_choixparametres=="polynome")
+  {
+cout << "Cas non implémenté" << endl;
+  }
+
 }
 
 
 //Matrice B pour equation adjointe.
 void ProblemeInverse::InitializeMatrixA()
 {
-  _A.resize(_Nx*_Ny+_Ny,_Nx*_Ny+_Ny);
-
-  for (int i=0; i<_Nx*_Ny; i++)
-  {
-    _A.coeffRef(i,i)=1.;
-  }
+  _A.resize(_Nx*_Ny+_nombrepara,_Nx*_Ny+_nombrepara);
 
   for (int i=0; i<_Ny; i++)
   {
-    _A.coeffRef((i+1)*_Nx-1,_Nx*_Ny+i*_Ny)=_beta;
+    _A.coeffRef(_Ligneue +i*_Nx,_Ligneue +i*_Nx)=1.;
+    _HugeMatrix.coeffRef(_Ligneue +i*_Nx,_Ligneue +i*_Nx)=1.;
   }
 }
 
+void ProblemeInverse::CalculCL()
+{
+  if(_choixparametres=="surcharge")
+  {
+    for(int i=0; i<_Ny;i++)
+    {
+      _gs(i)=_para(i);
+    }
+  }
+  if(_choixparametres=="polynome")
+  {
+    for(int i=0; i<_Ny;i++)
+    {
+      _gs(i)=0.;
+      for(int j=0; j<_nombrepara; j++)
+      {
+        _gs(i)+=_para(j)*pow(i*_h_y,j);
+      }
+    }
+  }
+}
 
 void ProblemeInverse::CalculSecondMembre()
 {
-  for(int i=0 ; i<_Ny ; i++)
+  if(_choixmethode=="Sensibilite")
+  _b.setZero(_Nx*_Ny);
   {
-    _b((i+1)*_Ny-1)-=_gs(i)*_beta;
+    for(int i=0 ; i<_Ny ; i++)
+    {
+      _b((i+1)*_Ny-1)-=_gs(i)*_beta;
+    }
   }
+  if(_choixmethode=="Adjointe")
+  _b.setZero(2*_Nx*_Ny+_nombrepara);
+  {
+    for(int i=0 ; i<_Nx*_Ny ; i++)
+    {
+      _b(i)-=_ue(i);
+    }
+  }
+
 }
 
 void ProblemeInverse::Sensibilite()
 {
   double Sum;
   double a=0.;
+  VectorXd diffuue;
   Sum=1.;
 
   ConjugateGradient <SparseMatrix<double> > solver;
@@ -217,52 +262,38 @@ void ProblemeInverse::Sensibilite()
   while(Sum>=_tolerance)
   {
     Sum=0.;
+    CalculCL();
     CalculSecondMembre();
-    _u = solver.solve(_b);
-    for (int i=0; i<_Ny; i++)
+    _u = solver.solve(_b); //STEP 1
+    diffuue=_A*(_u-_ue);
+    for (int i=0; i<_nombrepara; i++)
     {
-      _db.setZero(_db.size());
-      _db((i+1)*_Nx-1)=-_beta;
+      _db.setZero(_db.size()); //STEP 2
+      if(_choixparametres=="surcharge")
+      {
+        _db((i+1)*_Nx-1)=-_beta;
+      }
+      if(_choixparametres=="polynome")
+      {
+        cout << "Cas Non implémenté" << endl;
+      }
       _du = solver.solve(_db);
-      a = (_u-_ue).dot(_du);
+      a = diffuue.dot(_du);
       _dI(i)=a;
       Sum+=pow(a,2);
       _du.setZero(_du.size());
     }
-    _gs=_gs-_pas*_dI;
+    _para=_para-_pas*_dI; //STEP 3
     Sum=sqrt(Sum);
   }
 }
 
 void ProblemeInverse::Adjointe()
 {
-  double Sum;
-  Sum=1.;
-
   ConjugateGradient <SparseMatrix<double> > solver;
-  solver.compute(_LapMat);
-
-  while(Sum>=_tolerance)
-  {
-    Sum=0.;
-    CalculSecondMembre();
-    _u = solver.solve(_b);
-    _lambda = solver.solve(_u-_ue);
-
-    for (int i=0; i<_Ny; i++)
-    {
-      _db.setZero(_db.size());
-      _db((i+1)*_Nx-1)=-_beta;
-      _dI(i)=_lambda.dot(_db);
-    }
-
-    for (int i=0; i<_Ny; i++)
-    {
-      Sum+=pow(_dI(i),2);
-    }
-    _gs=_gs-_pas*_dI;
-    Sum=sqrt(Sum);
-  }
+  solver.compute(_HugeMatrix);
+  CalculSecondMembre();
+  _Ulambda = solver.solve(_b);
 }
 
 void ProblemeInverse::Projection()
@@ -274,6 +305,10 @@ void ProblemeInverse::Projection()
   SparseMatrix<double> BTB(_B*_B.transpose());
   solver.compute(BTB);
   InitializeMatrixA();
+  for(int i=0; i<_Nx*_Ny; i++)
+  {
+    _GrandUe(i)=_ue(i);
+  }
 
   while(Sum>=_tolerance)
   {
