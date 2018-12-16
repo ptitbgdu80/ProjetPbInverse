@@ -12,7 +12,7 @@ class ProblemeInverse
 {
   protected:
   double _x_min, _x_max, _y_min, _y_max, _h_x, _h_y, _alpha, _beta, _gamma,_tolerance,_pas;
-  int _Nx, _Ny, _Ligneue, _nombrepara;
+  int _Nx, _Ny, _Ligneue, _nombrepara, _choixmethode, _choixparametres;
   Eigen::SparseMatrix<double> _LapMat, _B,_A,_HugeMatrix;
   Eigen::VectorXd _b; //Second Membre
   Eigen::VectorXd _u; // Solution du problème
@@ -27,8 +27,7 @@ class ProblemeInverse
   Eigen::VectorXd _lambda; //Vecteur des coefficients de Lagrange.
   Eigen::VectorXd _Ulambda; //Vecteur contenant u, les param et les coeff de Lagrange.
   Eigen::VectorXd _gradproj; //Vecteur gradient utilisé dans l'algo gradient projeté
-  std::string _Solveur, _choixmethode, _choixparametres;
-
+  std::string _Solveur;
 
   public: // Méthodes et opérateurs de la classe
   ProblemeInverse();
@@ -44,4 +43,5 @@ class ProblemeInverse
   void Sensibilite();
   void Adjointe();
   void Projection();
+  void Resolution();
 };

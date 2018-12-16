@@ -107,7 +107,7 @@ void ProblemeInverse::InitializeMatrixB()
       _HugeMatrix.coeffRef(j,_Nx*_Ny+_nombrepara+i)=-_LapMat.coeffRef(i,j);
     }
   }
-  if(_choixparametres=="surcharge")
+  if(_choixparametres==1)
   {
     for (int i=0; i<_nombrepara; i++)
     {
@@ -116,7 +116,7 @@ void ProblemeInverse::InitializeMatrixB()
       _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+(i+1)*_Nx-1)=-_beta;
     }
   }
-  if(_choixparametres=="polynome")
+  if(_choixparametres==2)
   {
 cout << "Cas non implémenté" << endl;
   }
@@ -138,14 +138,14 @@ void ProblemeInverse::InitializeMatrixA()
 
 void ProblemeInverse::CalculCL()
 {
-  if(_choixparametres=="surcharge")
+  if(_choixparametres==1)
   {
     for(int i=0; i<_Ny;i++)
     {
       _gs(i)=_para(i);
     }
   }
-  if(_choixparametres=="polynome")
+  if(_choixparametres==2)
   {
     for(int i=0; i<_Ny;i++)
     {
@@ -160,7 +160,7 @@ void ProblemeInverse::CalculCL()
 
 void ProblemeInverse::CalculSecondMembre()
 {
-  if(_choixmethode=="Sensibilite")
+  if(_choixmethode==1)
   _b.setZero(_Nx*_Ny);
   {
     for(int i=0 ; i<_Ny ; i++)
@@ -168,7 +168,7 @@ void ProblemeInverse::CalculSecondMembre()
       _b((i+1)*_Ny-1)-=_gs(i)*_beta;
     }
   }
-  if(_choixmethode=="Adjointe")
+  if(_choixmethode==2)
   _b.setZero(2*_Nx*_Ny+_nombrepara);
   {
     for(int i=0 ; i<_Nx*_Ny ; i++)
@@ -199,11 +199,11 @@ void ProblemeInverse::Sensibilite()
     for (int i=0; i<_nombrepara; i++)
     {
       _db.setZero(_db.size()); //STEP 2
-      if(_choixparametres=="surcharge")
+      if(_choixparametres==1)
       {
         _db((i+1)*_Nx-1)=-_beta;
       }
-      if(_choixparametres=="polynome")
+      if(_choixparametres==2)
       {
         cout << "Cas Non implémenté" << endl;
       }
@@ -252,5 +252,21 @@ void ProblemeInverse::Projection()
     }
     _GrandU=_GrandU-_pas*_gradproj;
     Sum=sqrt(Sum);
+  }
+}
+
+void ProblemeInverse::Resolution()
+{
+  if(_choixmethode==1)
+  {
+    Sensibilite();
+  }
+  if(_choixmethode==2)
+  {
+    Adjointe();
+  }
+  if(_choixmethode==3)
+  {
+    Projection();
   }
 }
