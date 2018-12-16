@@ -9,54 +9,9 @@ ProblemeInverse::ProblemeInverse()
 //Destructeur :
 ProblemeInverse::~ProblemeInverse()
 {}
-
-void ProblemeInverse::Initialize(DataFile data_file)
-{
-  _Nx = data_file.Get_N_x();
-  _Ny = data_file.Get_N_y();
-  _x_min = data_file.Get_x_min();
-  _x_max = data_file.Get_x_max();
-  _y_min = data_file.Get_y_min();
-  _y_max = data_file.Get_y_max();
-  _Solveur = data_file.Get_Solveur();
-
-  //_tolerance = data_file.Get_tolerance();
-
-  // _save_all_file = data_file.Get_save_all_file();
-  //
-  // _save_points_file = data_file.Get_save_points_file();
-  // _number_saved_points = data_file.Get_number_saved_points();
-  // _saved_points = data_file.Get_saved_points();
-  //
-  // _restart_file = data_file.Get_restart_file();
-
-  _h_y = (_y_max-_y_min)/(_Ny+1.);
-  _h_x = (_x_max-_x_min)/(_Nx+1.);
-
-    _u.setZero(_Nx*_Ny);
-    _db.setZero(_Nx*_Ny);
-    _du.setZero(_Nx*_Ny);
-    _ue.setZero(_Nx*_Ny);
-    _gs.setZero(_Ny);
-    _dI.setZero(_Ny);
-    _GrandU.setZero(_Nx*_Ny+_nombrepara);
-    _GrandUe.setZero(_Nx*_Ny+_nombrepara);
-    _gradproj.setZero(_Nx*_Ny+_nombrepara);
-    _lambda.setZero(_Nx*_Ny);
-    _para.setZero(_nombrepara);
-    _Ulambda.setZero(2*_Nx*_Ny+_nombrepara);
-    _HugeMatrix.resize(2*_Nx*_Ny+_nombrepara,2*_Nx*_Ny+_nombrepara);
-
-  // if (_save_all_file !="non")
-  // {
-  //   system(("rm -Rf "+_save_all_file).c_str());
-  //   system(("mkdir -p ./"+_save_all_file).c_str());
-  // }
-}
-
 void ProblemeInverse::recup_ue()
 {
-  _ue.setZero(_Nx*_Ny);
+  _file_name="u_etoile.txt";
   ifstream fichier;
   fichier.open(_file_name);
 
@@ -68,7 +23,7 @@ void ProblemeInverse::recup_ue()
   else
   {
     cout << "-------------------------------------------------" << endl;
-    cout << "Lecture du fichier " << _file_name << endl;
+    cout << "Lecture du fichier" << _file_name << endl;
   }
 
   string file_line;
@@ -77,50 +32,75 @@ void ProblemeInverse::recup_ue()
   {
     getline(fichier, file_line);
 
-    if (file_line.find("x_min :") != std::string::npos)
-    {
-      fichier >>_x_min;
-    }
-
-    if (file_line.find("x_max :") != std::string::npos)
-    {
-      fichier >>_x_max
-    }
-
-    if (file_line.find("x* :") != std::string::npos)
-    {
-      fichier >>_x_etoile;
-    }
-
-    if (file_line.find("y_min :") != std::string::npos)
-    {
-      fichier >>_y_min;
-    }
-
-    if (file_line.find("y_max :") != std::string::npos)
-    {
-      fichier >>_y_max;
-    }
-
-    if (file_line.find("Nx :") != std::string::npos)
-    {
-      fichier >>_Nx;
-    }
-
-    if (file_line.find("Ny :") != std::string::npos)
-    {
-      fichier >>_Ny;
-    }
-
-    if (file_line.find("u*:") != std::string::npos)
+    if (file_line.find("u* :") != std::string::npos)
     {
       for (int i=0; i<_Ny; i++)
       {
-        fichier >>_ue[_Ligneue + _Nx*(i-1)];
+        fichier >>_ue(_Ligneue + _Nx*i);
       }
     }
   }
+  cout << "Lecture du fichier terminée " << endl;
+  cout << "-------------------------------------------------" << endl;
+  // cout << _Ligneue<<endl;
+  // cout << "ueeeeeeeeeee            "<< _ue(_Ligneue+_Nx) <<endl;
 }
+
+
+void ProblemeInverse::Initialize(DataFile data_file)
+{
+  _Nx = data_file.Get_Nx();
+  _Ny = data_file.Get_Ny();
+
+  cout<<"choix de méthode de résolution"<<endl;
+  cout<<" 1 pour sensibilité"<<endl;
+  cout<<" 2 pour adjointe"<<endl;
+  cout<<" 3 pour projection"<<endl;
+  int choixmethode;
+  cin >> choixmethode;
+  _choixmethode=choixmethode;
+
+  cout<<"choix de paramètres"<<endl;
+  cout<<" 1 pour CL bord droit"<<endl;
+  cout<<" 2 pour polynôme"<<endl;
+  int choixparametres;
+  cin >> choixparametres;
+  _choixparametres=choixparametres;
+
+  if (choixparametres==1)
+  {
+    _nombrepara=_Ny;
+  }
+  else if (choixparametres==2)
+  {
+    _nombrepara=3;
+  }
+
+  _x_min = data_file.Get_x_min();
+  _x_max = data_file.Get_x_max();
+  _y_min = data_file.Get_y_min();
+  _y_max = data_file.Get_y_max();
+  _Ligneue= data_file.Get_Ligneue();
+  _h_y = (_y_max-_y_min)/(_Ny+1.);
+  _h_x = (_x_max-_x_min)/(_Nx+1.);
+  _u.setZero(_Nx*_Ny);
+  _ue.setZero(_Nx*_Ny);
+  _db.setZero(_Nx*_Ny);
+  _du.setZero(_Nx*_Ny);
+  _gs.setZero(_Ny);
+  _dI.setZero(_Ny);
+  _GrandU.setZero(_Nx*_Ny+_nombrepara);
+  _GrandUe.setZero(_Nx*_Ny+_nombrepara);
+  _gradproj.setZero(_Nx*_Ny+_nombrepara);
+  _lambda.setZero(_Nx*_Ny);
+  _para.setZero(_nombrepara);
+  _Ulambda.setZero(2*_Nx*_Ny+_nombrepara);
+  _HugeMatrix.resize(2*_Nx*_Ny+_nombrepara,2*_Nx*_Ny+_nombrepara);
+  _pas=1.;
+  _tolerance=0.001;
+
+}
+
 
 
 void ProblemeInverse::InitializeMatrixM()
@@ -170,11 +150,13 @@ void ProblemeInverse::InitializeMatrixB()
   _B.resize(_Nx*_Ny,_Nx*_Ny+_nombrepara);
   for (int i=0; i<_Nx*_Ny; i++)
   {
+    // cout<<"hello"<<endl;
     for (int j=0; j<_Nx*_Ny; j++)
     {
+      // cout<<"coucou"<<endl;
       _B.coeffRef(i,j)=_LapMat.coeffRef(i,j); //marchera pas
-      _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara+i,j)=_LapMat.coeffRef(i,j);
-      _HugeMatrix.coeffRef(j,_Nx*_Ny+_nombrepara+i)=-_LapMat.coeffRef(i,j);
+      // _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara+i,j)=_LapMat.coeffRef(i,j);
+      // _HugeMatrix.coeffRef(j,_Nx*_Ny+_nombrepara+i)=-_LapMat.coeffRef(i,j);
     }
   }
   if(_choixparametres==1)
@@ -201,8 +183,8 @@ void ProblemeInverse::InitializeMatrixA()
 
   for (int i=0; i<_Ny; i++)
   {
-    _A.coeffRef(_Ligneue +i*_Nx,_Ligneue +i*_Nx)=1.;
-    _HugeMatrix.coeffRef(_Ligneue +i*_Nx,_Ligneue +i*_Nx)=1.;
+    _A.coeffRef(_Ligneue  +i*_Nx,_Ligneue +i*_Nx)=1.;
+    _HugeMatrix.coeffRef(_Ligneue  +i*_Nx,_Ligneue +i*_Nx)=1.;
   }
 }
 

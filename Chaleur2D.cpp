@@ -151,12 +151,12 @@ void Chaleur2D::SaveSol()
     }
     mon_flux.close();
   }
-
+  int j = floor((_x_etoile - _x_min)/_h_x+0.1);
   mon_flux.open(_save_u_etoile_file, ios::out);
   mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl << endl
   << "x_min :" << endl << _x_min << endl << endl
   << "x_max :" << endl << _x_max << endl << endl
-  << "x* :" << endl << _x_etoile << endl << endl
+  << "colonne :" << endl << j << endl << endl
   << "y_min :" << endl << _y_min << endl << endl
   << "y_max :" << endl << _y_max << endl << endl
   << "Nx :" << endl << _Nx << endl << endl
@@ -164,14 +164,9 @@ void Chaleur2D::SaveSol()
   << "g(s) :" << endl << _CL_droite << " " << _Val_CL_droite << endl << endl
   << "u* :" << endl;
 
-  int j = floor((_x_etoile - _x_min)/_h_x+0.1);
-
   for(int i = 0; i < _Ny; i++)
   {
-    for(int j = 0; j<_Nx; j++)
-    {
     mon_flux << _sol(j + i*_Nx) << endl;
-    }
   }
   mon_flux.close();
 }

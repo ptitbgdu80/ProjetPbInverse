@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <memory>
-#include "Datafile.h"
+#include "Datafileinv.h"
 
 class ProblemeInverse
 {
@@ -37,7 +37,8 @@ class ProblemeInverse
   // Constructeur : Initialiser _x_min, _x_max, _y_min; _y_max; _N; _h; _LapMat; _x; _y et _sol.
   ~ProblemeInverse();
 
-  void Initialize(DataFile datafile);
+  void recup_ue();
+  void Initialize(DataFile data_file);
   void InitializeMatrixM();
   void InitializeMatrixA();
   void InitializeMatrixB();
@@ -47,4 +48,5 @@ class ProblemeInverse
   void Adjointe();
   void Projection();
   void Resolution();
+
 };
