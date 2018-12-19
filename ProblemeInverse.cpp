@@ -105,10 +105,11 @@ void ProblemeInverse::Initialize(DataFile data_file)
 
 void ProblemeInverse::InitializeMatrixM()
 {
+  _B.resize(_Nx*_Ny,_Nx*_Ny+_nombrepara);
   _LapMat.resize(_Nx*_Ny,_Nx*_Ny);
-  double _alpha = 2*(1/pow(_h_x,2)+1/pow(_h_y,2));
-  double _beta = -1/pow(_h_x,2);
-  double _gamma = -1/pow(_h_y,2);
+  _alpha = 2*(1/pow(_h_x,2)+1/pow(_h_y,2));
+  _beta = -1/pow(_h_x,2);
+  _gamma = -1/pow(_h_y,2);
 
   vector<Triplet<double>> liste_elem;
 
@@ -132,14 +133,17 @@ void ProblemeInverse::InitializeMatrixM()
   }
 
   _LapMat.setFromTriplets(liste_elem.begin(), liste_elem.end());
+  _B.setFromTriplets(liste_elem.begin(), liste_elem.end());
 
   for (int i = 0; i < _Nx ; i++)
   {
     _LapMat.coeffRef(i,i) += _gamma; //Bord haut
+    _B.coeffRef(i,i) += _gamma;
   }
   for (int i = 0; i < _Nx ; i++)
   {
-    _LapMat.coeffRef((_Ny - 1)* _Nx + i , (_Ny - 1)* _Nx + i) += _gamma; //Bord bas
+    _LapMat.coeffRef((_Ny - 1)* _Nx + i , (_Ny - 1)* _Nx + i) += _gamma;
+    _B.coeffRef((_Ny - 1)* _Nx + i , (_Ny - 1)* _Nx + i) += _gamma; //Bord bas
   }
 }
 
@@ -147,32 +151,36 @@ void ProblemeInverse::InitializeMatrixM()
 //Matrice B pour equation adjointe.
 void ProblemeInverse::InitializeMatrixB()
 {
-  _B.resize(_Nx*_Ny,_Nx*_Ny+_nombrepara);
+  MatrixXd Temp, Temphuge;
+  Temp=MatrixXd(_LapMat);
+  Temphuge=MatrixXd(_HugeMatrix);
   for (int i=0; i<_Nx*_Ny; i++)
   {
     // cout<<"hello"<<endl;
     for (int j=0; j<_Nx*_Ny; j++)
     {
       // cout<<"coucou"<<endl;
-      _B.coeffRef(i,j)=_LapMat.coeffRef(i,j); //marchera pas
-      // _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara+i,j)=_LapMat.coeffRef(i,j);
-      // _HugeMatrix.coeffRef(j,_Nx*_Ny+_nombrepara+i)=-_LapMat.coeffRef(i,j);
+      Temphuge(_Nx*_Ny+_nombrepara+i,j)=Temp(i,j);
+      Temphuge(j,_Nx*_Ny+_nombrepara+i)=-Temp(i,j);
     }
   }
+  _HugeMatrix=Temphuge.sparseView();
+
+
   if(_choixparametres==1)
   {
     for (int i=0; i<_nombrepara; i++)
     {
       _B.coeffRef((i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
-      _HugeMatrix.coeffRef(_Nx*_Ny+(i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
-      _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+(i+1)*_Nx-1)=-_beta;
+      _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara + (i+1)*_Nx-1,_Nx*_Ny+i)=_beta;
+      _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+_nombrepara+(i+1)*_Nx-1)=-_beta;
     }
   }
   if(_choixparametres==2)
   {
-cout << "Cas non implémenté" << endl;
+    cout << "Cas non implémenté" << endl;
   }
-
+//  cout<<_HugeMatrix<<endl;
 }
 
 
@@ -213,16 +221,18 @@ void ProblemeInverse::CalculCL()
 void ProblemeInverse::CalculSecondMembre()
 {
   if(_choixmethode==1)
-  _b.setZero(_Nx*_Ny);
   {
+    _b.setZero(_Nx*_Ny);
     for(int i=0 ; i<_Ny ; i++)
     {
-      _b((i+1)*_Ny-1)-=_gs(i)*_beta;
+      _b((i+1)*_Nx-1)-=_beta*_gs(i);
+      cout<<_b<<endl<<endl<<endl;
     }
   }
   if(_choixmethode==2)
-  _b.setZero(2*_Nx*_Ny+_nombrepara);
   {
+    _b.setZero(2*_Nx*_Ny+_nombrepara);
+
     for(int i=0 ; i<_Nx*_Ny ; i++)
     {
       _b(i)-=_ue(i);

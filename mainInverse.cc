@@ -25,8 +25,8 @@ int main(int argc, char** argv)
   Pb1.InitializeMatrixM();
   Pb1.InitializeMatrixA();
   Pb1.InitializeMatrixB();
- //  void CalculCL();
- //  void CalculSecondMembre();
+  // Pb1.CalculCL();
+  Pb1.CalculSecondMembre();
  //  void Sensibilite();
  //  void Adjointe();
  //  void Projection();
