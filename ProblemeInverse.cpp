@@ -104,7 +104,7 @@ void ProblemeInverse::Initialize(DataFile data_file)
   }
   else if (choixparametres==2)
   {
-    _nombrepara=3;
+    _nombrepara=5;
   }
 
   _x_min = data_file.Get_x_min();
@@ -192,10 +192,8 @@ void ProblemeInverse::InitializeMatrixB()
   Temphuge=MatrixXd(_HugeMatrix);
   for (int i=0; i<_Nx*_Ny; i++)
   {
-    // cout<<"hello"<<endl;
     for (int j=0; j<_Nx*_Ny; j++)
     {
-      // cout<<"coucou"<<endl;
       Temphuge(_Nx*_Ny+_nombrepara+i,j)=Temp(i,j);
       Temphuge(j,_Nx*_Ny+_nombrepara+i)=-Temp(i,j);
     }
@@ -214,7 +212,15 @@ void ProblemeInverse::InitializeMatrixB()
   }
   if(_choixparametres==2)
   {
-    cout << "Cas non implémenté" << endl;
+    for (int i=0; i<_nombrepara; i++)
+    {
+      for(int j=0; j<_Ny; j++)
+      {
+        _B.coeffRef((j+1)*_Nx-1,_Nx*_Ny+i)=_beta*pow((j+1)*_h_y,i);
+        _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara +(j+1)*_Nx-1,_Nx*_Ny+i)=_beta*pow(j*_h_y,i);
+        _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+_nombrepara+(j+1)*_Nx-1)=-_beta*pow(j*_h_y,i);
+      }
+    }
   }
 }
 
@@ -306,7 +312,7 @@ void ProblemeInverse::Sensibilite()
       {
         for (int j=0; j<_Ny;j++)
         {
-          _db((j+1)*_Nx-1)=-pow((j+1)*_h_y,i);
+          _db((j+1)*_Nx-1)=-_beta*pow((j+1)*_h_y,i);
         }
       }
       _du = solver.solve(_db);
@@ -360,7 +366,7 @@ void ProblemeInverse::Resolution()
 {
   if(_choixmethode==1)
   {
-    _pas=1.2;
+    _pas=1.;
     Sensibilite();
   }
   if(_choixmethode==2)
