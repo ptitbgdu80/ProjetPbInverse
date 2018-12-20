@@ -19,6 +19,7 @@ class DataFile
   double _y_max;
   int _Nx;
   int _Ny;
+  double _pas;
 
   // Pour savoir si l'utilisateur a donner les paramètres
   // ou si il faut utiliser les paramètres par défaut.
@@ -31,6 +32,7 @@ class DataFile
   bool _if_y_max;
   bool _if_Nx;
   bool _if_Ny;
+  bool _if_pas;
 
  public:
 
@@ -46,6 +48,7 @@ class DataFile
   inline int Get_Ligneue() {return _Ligneue;}
   inline double Get_y_min() {return _y_min;}
   inline double Get_y_max() {return _y_max;}
+  inline double Get_pas() {return _pas;}
 
 };
 

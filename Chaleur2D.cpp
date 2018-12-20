@@ -140,8 +140,8 @@ void Chaleur2D::SaveSol()
     mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl
     << "# Avec x_min=" << _x_min << ", x_max=" << _x_max << ", _y_min=" << _y_min << ", y_max=" << _y_max << endl
     << "# Nx =" << _Nx << ", Ny=" << _Ny << ", g(s) : " << _CL_droite << " " << _Val_CL_gauche << endl
-    << "# Les points sont sauvegardés ci-dessous (x, y, T) : " << endl;
-
+    << "# Les points sont sauvegardés ci-dessous (x, y, T) : " << endl << endl
+    << "u :" << endl;
     for(int i = 0; i < _Ny; i++)
     {
       for(int j = 0; j<_Nx; j++)
@@ -161,12 +161,35 @@ void Chaleur2D::SaveSol()
   << "y_max :" << endl << _y_max << endl << endl
   << "Nx :" << endl << _Nx << endl << endl
   << "Ny :" << endl << _Ny << endl << endl
+  << "pas :" << endl << 1 << endl << endl
   << "g(s) :" << endl << _CL_droite << " " << _Val_CL_droite << endl << endl
   << "u* :" << endl;
 
   for(int i = 0; i < _Ny; i++)
   {
-    mon_flux << _sol(j + i*_Nx) << endl;
+    mon_flux << _sol(j-1 + i*_Nx) << endl;
+  }
+  mon_flux.close();
+
+  mon_flux.open("solue.txt", ios::out);
+  mon_flux << "# Équation de la chaleur sur un domaine rectangulaire avec un maillage cartésien" << endl << endl
+  << "x_min :" << endl << _x_min << endl << endl
+  << "x_max :" << endl << _x_max << endl << endl
+  << "colonne :" << endl << j << endl << endl
+  << "y_min :" << endl << _y_min << endl << endl
+  << "y_max :" << endl << _y_max << endl << endl
+  << "Nx :" << endl << _Nx << endl << endl
+  << "Ny :" << endl << _Ny << endl << endl
+  << "pas :" << endl << 1 << endl << endl
+  << "g(s) :" << endl << _CL_droite << " " << _Val_CL_droite << endl << endl
+  << "u :" << endl;
+
+  for(int i = 0; i < _Ny; i++)
+  {
+    for(int j = 0; j<_Nx; j++)
+    {
+      mon_flux << _sol(j + i*_Nx) << endl;
+    }
   }
   mon_flux.close();
 }

@@ -20,24 +20,22 @@ int main(int argc, char** argv)
 
   ProblemeInverse Pb1;
   Pb1.Initialize(data_file);
-    cout<<"TESSSSSSSSSSSSSSSSSSSSSSSST"<<endl;
   Pb1.recup_ue();
   Pb1.InitializeMatrixM();
   Pb1.InitializeMatrixA();
   Pb1.InitializeMatrixB();
-  // Pb1.CalculCL();
+  Pb1.CalculCL();
   Pb1.CalculSecondMembre();
- //  void Sensibilite();
- //  void Adjointe();
- //  void Projection();
- //  void Resolution();
 
-// {
-//   if (argc < 2)
-//   {
-//     cout << "Pas de fichier d'entrée" << endl;
-//     exit(1);
-//   }
+  cout << "Now we BEGIN" << endl ;
+  std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+  Pb1.Resolution();
+  std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+  std::cout << "took " << sec.count() << " seconds\n";
+
+  Pb1.SaveSol();
+  Pb1.erreur();
+
 
   return 0;
 }

@@ -18,6 +18,7 @@ class ProblemeInverse
   Eigen::VectorXd _u; // Solution du problème
   Eigen::VectorXd _GrandU; //Solution contenant u et les paramètres alpha
   Eigen::VectorXd _ue;// Solution expérimentale
+  Eigen::VectorXd _toutue; // Toute la solution expérimentale
   Eigen::VectorXd _GrandUe;// Solution expérimentale et le nombre de parametres de 0.
   Eigen::VectorXd _para; //Paramètres du problème
   Eigen::VectorXd _db; //Vecteur utilisable pour chaque colonne de la matrice de db/dalpha
@@ -48,5 +49,7 @@ class ProblemeInverse
   void Adjointe();
   void Projection();
   void Resolution();
+  void SaveSol();
+  void erreur();
 
 };
