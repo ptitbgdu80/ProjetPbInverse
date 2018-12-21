@@ -21,10 +21,10 @@ CL bas :
 Neumann_homogène 0
 
 N_x :
-49
+99
 
 N_y :
-49
+99
 
 x_min :
 0.
@@ -33,7 +33,7 @@ x_max :
 1.
 
 x* :
-0.98
+0.99
 
 y_min :
 0.

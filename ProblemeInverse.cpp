@@ -98,13 +98,19 @@ void ProblemeInverse::Initialize(DataFile data_file)
   cin >> choixparametres;
   _choixparametres=choixparametres;
 
+  if(_choixparametres==2)
+  {
+    cout<<"choix du degré du polynome"<<endl;
+    int degre;
+    cin >> degre;
+    _nombrepara=degre+1;
+  }
+
+
+
   if (choixparametres==1)
   {
     _nombrepara=_Ny;
-  }
-  else if (choixparametres==2)
-  {
-    _nombrepara=5;
   }
 
   _x_min = data_file.Get_x_min();
@@ -129,7 +135,6 @@ void ProblemeInverse::Initialize(DataFile data_file)
   _para.setZero(_nombrepara);
   _Ulambda.setZero(2*_Nx*_Ny+_nombrepara);
   _HugeMatrix.resize(2*_Nx*_Ny+_nombrepara,2*_Nx*_Ny+_nombrepara);
-  // Pas opti = 1,5 pour sensibilite à droite
   _tolerance=0.1;
   for (int i=0; i<_nombrepara; i++)
   {
@@ -187,18 +192,44 @@ void ProblemeInverse::InitializeMatrixM()
 //Matrice B pour equation adjointe.
 void ProblemeInverse::InitializeMatrixB()
 {
-  MatrixXd Temp, Temphuge;
-  Temp=MatrixXd(_LapMat);
-  Temphuge=MatrixXd(_HugeMatrix);
-  for (int i=0; i<_Nx*_Ny; i++)
+  vector<Triplet<double>> liste_elem;
+
+  for (int i = 0 ; i<_Nx*_Ny ; i++)
   {
-    for (int j=0; j<_Nx*_Ny; j++)
+    liste_elem.push_back({_Nx*_Ny+_nombrepara+i,i,_alpha});
+    liste_elem.push_back({i,_Nx*_Ny+_nombrepara+i,-_alpha});
+  }
+
+  for (int i = 0 ; i<_Ny*_Nx-1; i++)
+  {
+    if ((i+1)%_Nx!=0)
     {
-      Temphuge(_Nx*_Ny+_nombrepara+i,j)=Temp(i,j);
-      Temphuge(j,_Nx*_Ny+_nombrepara+i)=-Temp(i,j);
+      liste_elem.push_back({_Nx*_Ny+_nombrepara+i,i+1,_beta});
+      liste_elem.push_back({_Nx*_Ny+_nombrepara+i+1,i,_beta});
+      liste_elem.push_back({i+1,_Nx*_Ny+_nombrepara+i,-_beta});
+      liste_elem.push_back({i,_Nx*_Ny+_nombrepara+i+1,-_beta});
     }
   }
-  _HugeMatrix=Temphuge.sparseView();
+  for (int i = 0 ; i<_Nx*(_Ny-1) ; i++)
+  {
+    liste_elem.push_back({_Nx*_Ny+_nombrepara+i,_Nx+i,_gamma});
+    liste_elem.push_back({_Nx+_Nx*_Ny+_nombrepara+i,i,_gamma});
+    liste_elem.push_back({_Nx+i,_Nx*_Ny+_nombrepara+i,-_gamma});
+    liste_elem.push_back({i,_Nx+_Nx*_Ny+_nombrepara+i,-_gamma});
+  }
+
+  _HugeMatrix.setFromTriplets(liste_elem.begin(), liste_elem.end());
+
+  for (int i = 0; i < _Nx ; i++)
+  {
+    _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara+i,i) += _gamma; //Bord haut
+    _HugeMatrix.coeffRef(i,_Nx*_Ny+_nombrepara+i) += -_gamma; //Bord haut
+  }
+  for (int i = 0; i < _Nx ; i++)
+  {
+    _HugeMatrix.coeffRef((_Ny-1)*_Nx+_Nx*_Ny+_nombrepara+i,(_Ny-1)*_Nx+i) += _gamma; //Bord haut
+    _HugeMatrix.coeffRef((_Ny-1)*_Nx+i,(_Ny-1)*_Nx+_Nx*_Ny+_nombrepara+i) += -_gamma; //Bord haut
+  }
 
 
   if(_choixparametres==1)
@@ -217,15 +248,14 @@ void ProblemeInverse::InitializeMatrixB()
       for(int j=0; j<_Ny; j++)
       {
         _B.coeffRef((j+1)*_Nx-1,_Nx*_Ny+i)=_beta*pow((j+1)*_h_y,i);
-        _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara +(j+1)*_Nx-1,_Nx*_Ny+i)=_beta*pow(j*_h_y,i);
-        _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+_nombrepara+(j+1)*_Nx-1)=-_beta*pow(j*_h_y,i);
+        _HugeMatrix.coeffRef(_Nx*_Ny+_nombrepara +(j+1)*_Nx-1,_Nx*_Ny+i)=_beta*pow((j+1)*_h_y,i);
+        _HugeMatrix.coeffRef(_Nx*_Ny+i,_Nx*_Ny+_nombrepara+(j+1)*_Nx-1)=-_beta*pow((j+1)*_h_y,i);
       }
     }
   }
 }
 
 
-//Matrice B pour equation adjointe.
 void ProblemeInverse::InitializeMatrixA()
 {
   _A.resize(_Nx*_Ny+_nombrepara,_Nx*_Ny+_nombrepara);
@@ -241,9 +271,26 @@ void ProblemeInverse::CalculCL()
 {
   if(_choixparametres==1)
   {
-    for(int i=0; i<_Ny;i++)
+    if(_choixmethode==1)
     {
-      _gs(i)=_para(i);
+      for(int i=0; i<_Ny;i++)
+      {
+        _gs(i)=_para(i);
+      }
+    }
+    if(_choixmethode==2)
+    {
+      for(int i=0; i<_Ny;i++)
+      {
+        _gs(i)=_Ulambda(_Nx*_Ny+i);
+      }
+    }
+    if(_choixmethode==3)
+    {
+      for(int i=0; i<_Ny;i++)
+      {
+        _gs(i)=_GrandU(_Nx*_Ny+i);
+      }
     }
   }
   if(_choixparametres==2)
@@ -251,9 +298,26 @@ void ProblemeInverse::CalculCL()
     for(int i=0; i<_Ny;i++)
     {
       _gs(i)=0.;
-      for(int j=0; j<_nombrepara; j++)
+      if(_choixmethode==1)
       {
-        _gs(i)+=_para(j)*pow((i+1)*_h_y,j);
+        for(int j=0; j<_nombrepara; j++)
+        {
+          _gs(i)+=_para(j)*pow((i+1)*_h_y,j);
+        }
+      }
+      if(_choixmethode==2)
+      {
+        for(int j=0; j<_nombrepara; j++)
+        {
+          _gs(i)+=_Ulambda(_Nx*_Ny+j)*pow((i+1)*_h_y,j);
+        }
+      }
+      if(_choixmethode==3)
+      {
+        for(int j=0; j<_nombrepara; j++)
+        {
+          _gs(i)+=_GrandU(_Nx*_Ny+j)*pow((i+1)*_h_y,j);
+        }
       }
     }
   }
@@ -329,6 +393,7 @@ void ProblemeInverse::Sensibilite()
 
 void ProblemeInverse::Adjointe()
 {
+  //cout << _HugeMatrix << endl;
   SparseLU<SparseMatrix<double,1 > >  solver;
   solver.compute(_HugeMatrix);
   _Ulambda = solver.solve(_b);
@@ -336,7 +401,7 @@ void ProblemeInverse::Adjointe()
 
 void ProblemeInverse::Projection()
 {
-  MatrixXd Temp;
+  VectorXd Temp;
   double Sum;
   Sum=1.;
 
@@ -352,9 +417,9 @@ void ProblemeInverse::Projection()
   {
     Sum=0.;
     _gradproj = _A*_GrandU-_GrandUe;
-    Temp=MatrixXd(_B)*_gradproj;//ULTRA COUTEUX
+    Temp=_B*_gradproj;
     _lambda = solver.solve(Temp);
-    _gradproj=_gradproj - MatrixXd(_B.transpose())*_lambda; //ULTRA COUTEUX
+    _gradproj=_gradproj - _B.transpose()*_lambda;
     Sum=_gradproj.squaredNorm();
     _GrandU=_GrandU-_pas*_gradproj;
     cout << Sum <<endl;
@@ -366,18 +431,32 @@ void ProblemeInverse::Resolution()
 {
   if(_choixmethode==1)
   {
-    _pas=1.;
+    if (_choixparametres==1)
+    {
+      _pas=1.;
+    }
+    if (_choixparametres==2)
+    {
+      _pas=0.1;
+    }
     Sensibilite();
   }
   if(_choixmethode==2)
-  {
-    Adjointe();
-  }
+    {
+      Adjointe();
+    }
   if(_choixmethode==3)
-  {
-    _pas=5.;
-    Projection();
-  }
+    {
+      if (_choixparametres==1)
+      {
+        _pas=5.;
+      }
+      if (_choixparametres==2)
+      {
+        _pas=5.;
+      }
+     Projection();
+   }
 }
 
 void ProblemeInverse::erreur()
@@ -446,4 +525,30 @@ void ProblemeInverse::SaveSol()
     }
   }
   mon_flux.close();
+
+  if (_choixmethode==1 || _choixmethode==3)
+  {
+    CalculCL();
+    mon_flux.open("g(s).txt", ios::out);
+    mon_flux << 0 << " " << 0 << endl;
+    for(int i = 0; i < _Ny; i++)
+    {
+      mon_flux << (i+1)*_h_y << " " << _gs(i) << endl;
+    }
+    mon_flux << 1 << " " << 0 << endl;
+    mon_flux.close();
+  }
+
+  if (_choixmethode==2)
+  {
+    CalculCL();
+    mon_flux.open("g(s).txt", ios::out);
+    mon_flux << 0 << " " << 0 << endl;
+    for(int i = 0; i < _Ny; i++)
+    {
+      mon_flux << (i+1)*_h_y << " " << _gs(i) << endl;
+    }
+    mon_flux << 1 << " " << 0 << endl;
+    mon_flux.close();
+  }
 }

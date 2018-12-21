@@ -232,14 +232,14 @@ void Chaleur2D::ConditionsLimites()
   {
     for (int i = 0; i < _Ny; i++)
     {
-      _sol((i+1)*_Nx - 1) = _sol((i+1)*_Nx - 1)-beta*_Val_CL_droite*i*_h_y;
+      _sol((i+1)*_Nx - 1) = _sol((i+1)*_Nx - 1)-beta*_Val_CL_droite*(i+1)*_h_y;
     }
   }
   else if (_CL_droite == "Dirichlet_sinusoïdal") //Condition de température à droite
   {
     for (int i = 0; i < _Ny; i++)
     {
-      _sol((i+1)*_Nx - 1) = _sol((i+1)*_Nx - 1)-beta*_Val_CL_droite*sin(2*acos(-1)*i*_h_y);
+      _sol((i+1)*_Nx - 1) = _sol((i+1)*_Nx - 1)-beta*_Val_CL_droite*sin(2*acos(-1)*(i+1)*_h_y);
     }
   }
 }

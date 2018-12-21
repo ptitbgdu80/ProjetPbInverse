@@ -10,7 +10,7 @@ OPTIM_FLAG = -O3 -DNDEBUG -I $(path) -std=c++11 -Wall
 DEBUG_FLAG = -g -I $(path) -std=c++11 -Wall
 
 # On choisit comment on compile
-CXX_FLAGS = $(DEBUG_FLAG)
+CXX_FLAGS = $(OPTIM_FLAG)
 
 # Le nom de l'exécutable
 PROGCHALEUR = runChaleur

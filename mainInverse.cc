@@ -22,11 +22,9 @@ int main(int argc, char** argv)
   Pb1.Initialize(data_file);
   Pb1.recup_ue();
   Pb1.InitializeMatrixM();
-  Pb1.InitializeMatrixA();
   Pb1.InitializeMatrixB();
-    cout << "bite5"<< endl;
+  Pb1.InitializeMatrixA();
   Pb1.CalculCL();
-    cout << "bite6"<< endl;
   Pb1.CalculSecondMembre();
 
   cout << "Now we BEGIN" << endl ;
